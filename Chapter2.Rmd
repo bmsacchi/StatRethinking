@@ -1,0 +1,165 @@
+---
+title: "Chapter2"
+output: html_document
+date: "2024-10-02"
+---
+Install packages etc.
+```{r}
+library(rethinking)
+library(ggplot2)
+library(cowplot)
+```
+
+
+R code example 2.3 - 2.4
+```{r}
+# define grid
+p_grid <- seq( from=0 , to=1 , length.out=20 )
+# define prior
+prior <- rep( 1 , 20 )
+# compute likelihood at each value in grid
+likelihood <- dbinom( 6 , size=9 , prob=p_grid )
+# compute product of likelihood and prior
+unstd.posterior <- likelihood * prior
+# standardize the posterior, so it sums to 1
+posterior <- unstd.posterior / sum(unstd.posterior)
+# 2.4
+plot( p_grid , posterior , type="b" ,
+xlab="probability of water" , ylab="posterior probability" )
+mtext( "20 points" )
+```
+2.5
+cutoff pgrid at 0.5
+```{r}
+unstd.posterior <- likelihood * prior
+posterior <- unstd.posterior / sum(unstd.posterior)
+plot( p_grid , posterior , type="b" ,
+xlab="probability of water" , ylab="posterior probability" )
+mtext( "20 points" )
+
+```
+more messing with the prior
+```{r}
+prior <- exp( -5*abs( p_grid - 0.5 ) )
+unstd.posterior <- likelihood * prior
+posterior <- unstd.posterior / sum(unstd.posterior)
+plot( p_grid , posterior , type="b" ,
+xlab="probability of water" , ylab="posterior probability" )
+mtext( "20 points" )
+```
+
+### Exercises
+
+2M1. Recall the globe tossing model from the chapter. Compute and plot the grid approximate
+posterior distribution for each of the following sets of observations. In each case, assume a uniform prior for p.
+(1) W, W, W
+(2) W, W, W, L
+(3) L, W, W, L, W, W, W
+
+```{r}
+p_grid <- seq( from=0 , to=1 , length.out=20 )
+# define prior
+prior <- rep( 1 , 20 )# compute likelihood at each value in grid
+likelihood <- dbinom( 3, size=3 , prob=p_grid )
+# compute product of likelihood and prior
+unstd.posterior <- likelihood * prior
+# standardize the posterior, so it sums to 1
+posterior <- unstd.posterior / sum(unstd.posterior)
+
+plot( p_grid , posterior , type="b" ,
+xlab="probability of water 1" , ylab="posterior probability" )
+mtext( "20 points" )
+
+df1<-data.frame(p_grid, posterior)
+a<-ggplot(df1,aes(x=p_grid, y=posterior)) + geom_point() +
+  geom_line()
+#2
+likelihood <- dbinom( 3, size=4 , prob=p_grid )
+unstd.posterior <- likelihood * prior
+posterior <- unstd.posterior / sum(unstd.posterior)
+df2<-data.frame(p_grid, posterior)
+b<-ggplot(df2,aes(x=p_grid, y=posterior)) + geom_point() +
+  geom_line()
+#3
+likelihood <- dbinom( 5, size=7 , prob=p_grid )
+unstd.posterior <- likelihood * prior
+posterior <- unstd.posterior / sum(unstd.posterior)
+df3<-data.frame(p_grid, posterior)
+c<-ggplot(df3,aes(x=p_grid, y=posterior)) + geom_point() +
+  geom_line()
+
+plot_grid(a,b,c, labels = c("1","2","3"),ncol = 2)
+```
+2M2.
+Now assume a prior for p that is equal to zero when p < 0.5 and is a positive constant when
+p ≥0.5. Again compute and plot the grid approximate posterior distribution for each of the sets of
+observations in the problem just above.
+```{r}
+p_grid <- seq( from=0 , to=1 , length.out=20 )
+prior <- ifelse( p_grid < 0.5 , 0 , 1 )
+
+```
+
+2M3. 
+Suppose there are two globes, one for Earth and one for Mars. The Earth globe is 70% covered
+in water. The Mars globe is 100% land. Further suppose that one of these globes—you don’t know
+which—was tossed in the air and produced a “land” observation. Assume that each globe was equally
+likely to be tossed. Show that the posterior probability that the globe was the Earth, conditional on seeing “land” (Pr(Earth|land)), is 0.23.
+```{r}
+
+```
+
+2M4. Suppose you have a deck with only three cards. Each card has two sides, and each side is either
+black or white. One card has two black sides. The second card has one black and one white side. The
+third card has two white sides. Now suppose all three cards are placed in a bag and shuffled. Someone
+reaches into the bag and pulls out a card and places it flat on a table. A black side is shown facing up,
+but you don’t know the color of the side facing down. Show that the probability that the other side is
+also black is 2/3. Use the counting method (Section 2 of the chapter) to approach this problem. This
+means counting up the ways that each card could produce the observed data (a black side facing up
+on the table).
+
+```{r}
+
+```
+2H1. Suppose there are two species of panda bear. Both are equally common in the wild and live
+in the same places. They look exactly alike and eat the same food, and there is yet no genetic assay
+capable of telling them apart. They differ however in their family sizes. Species A gives birth to twins
+10% of the time, otherwise birthing a single infant. Species B births twins 20% of the time, otherwise
+birthing singleton infants. Assume these numbers are known with certainty, from many years of field
+research.
+Now suppose you are managing a captive panda breeding program. You have a new female panda
+of unknown species, and she has just given birth to twins. What is the probability that her next birth
+will also be twins?
+
+pr(A|B) = Pr(B|A)pr(A)/Pr(B)
+-------
+A, 0.5 - 10% twins
+B, 0.5 - 20% twins
+probability that she is species A
+
+pr(A|twins) = pr(twins|A)Pr(A)/Pr(twins)
+
+probability of twins
+pr(twins) = 0.1x0.5 + 0.2x0.5
+Pr(A|twins) = 0.10x0.5/0.15 = 0.33
+Pr(B|twins) = 1-0.33 = 0.66
+______
+
+Pr twins the second time, add in new probability
+Pr(twins2) = 0.1x0.33 + 0.2x0.66 = 0.167
+
+_____________
+singletons second time
+A -> panda is spp A
+B -> panda is spp B
+Ti -> having twins in birth i
+
+Pr(A|t1 and not t2) = P(not twins2 and twins1|A)xP(A)/Pr(not twins2 and twins1)
+P(not twins2 and twins1|A) = Pr(T1|A)xPr(notTwins2|A) = 1/10x9/10 = 9/100
+Pr(A) = 0.5
+Pr(B)xPr(not twins2 and twins1|B)=0.2 x 0.8 = 16/100
+Pr(not twins2 AND twins1) = Pr(A)xPr(not twins2 and twins1|A) +Pr(B)xPr(not twins2 and twins1|B)
+= 1/2x9/100 / 1/8 = 0.36
+
+
+
